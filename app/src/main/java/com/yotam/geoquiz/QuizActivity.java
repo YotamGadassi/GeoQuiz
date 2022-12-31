@@ -8,12 +8,20 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class QuizActivity extends AppCompatActivity
 {
     private static final String TAG = QuizActivity.class.getSimpleName();
     private static final String KEY_INDEX="index";
+    private static final String KEY_CHEAT="cheat";
+    private static final int REQUEST_CODE_FOR_CHEAT = 1;
 
     private Button m_trueButton;
     private Button m_falseButton;
@@ -24,12 +32,14 @@ public class QuizActivity extends AppCompatActivity
 
     private Question[] m_questions;
     private int m_currQuestionIndex;
+    private Set<Integer> m_cheatedQuestion = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate Called");
+        setState(savedInstanceState);
         setContentView(R.layout.activity_quiz);
 
         m_questions = new Question[3];
@@ -38,8 +48,18 @@ public class QuizActivity extends AppCompatActivity
         m_questions[2] = new Question(R.string.question3, true);
 
         m_questionText = (TextView)findViewById(R.id.question_text_view);
-        changeCurrentQuestion(savedInstanceState == null ? 0 : savedInstanceState.getInt(KEY_INDEX));
+        changeCurrentQuestion(m_currQuestionIndex);
         initButtons();
+    }
+
+    private void setState(Bundle savedInstanceState)
+    {
+        if(null == savedInstanceState)
+        {
+            return;
+        }
+        m_currQuestionIndex = savedInstanceState.getInt(KEY_INDEX);
+        m_cheatedQuestion = new HashSet<Integer>(savedInstanceState.getIntegerArrayList(KEY_CHEAT));
     }
 
     private void initButtons()
@@ -87,8 +107,8 @@ public class QuizActivity extends AppCompatActivity
         m_cheatButton = (Button)findViewById(R.id.cheat_button);
         m_cheatButton.setOnClickListener(view ->
         {
-            Intent cheatActivityIntent = new Intent(this, CheatActivity.class);
-            startActivity(cheatActivityIntent);
+            Intent cheatActivityIntent = CheatActivity.NewIntent(this,m_questions[m_currQuestionIndex].getAnswer());
+            startActivityForResult(cheatActivityIntent, REQUEST_CODE_FOR_CHEAT);
         });
     }
 
@@ -97,6 +117,26 @@ public class QuizActivity extends AppCompatActivity
     {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_INDEX, m_currQuestionIndex);
+        outState.putIntegerArrayList(KEY_CHEAT, (ArrayList<Integer>) m_cheatedQuestion.stream().collect(Collectors.toList()));
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode != RESULT_OK)
+        {
+            return;
+        }
+
+        if(requestCode == REQUEST_CODE_FOR_CHEAT && data != null)
+        {
+           boolean isCheated = CheatActivity.IsAnswerShown(data);
+           if(isCheated)
+           {
+               m_cheatedQuestion.add(m_currQuestionIndex);
+           }
+        }
     }
 
     @Override
@@ -144,7 +184,11 @@ public class QuizActivity extends AppCompatActivity
     {
 
         int resStringId;
-        if(answer == m_questions[m_currQuestionIndex].getAnswer())
+        if(m_cheatedQuestion.contains(m_currQuestionIndex))
+        {
+            resStringId = R.string.judgement_toast;
+        }
+        else if(answer == m_questions[m_currQuestionIndex].getAnswer())
         {
             resStringId = R.string.correct_toast;
         }
