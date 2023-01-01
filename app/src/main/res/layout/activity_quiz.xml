@@ -3,7 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".QuizActivity">
 
     <TextView
         android:id="@+id/question_text_view"
@@ -54,5 +56,13 @@
             android:drawableRight="@drawable/arrow_right"
             android:drawablePadding="4dp"
             android:text="@string/next_button"/>
+
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/number_of_cheats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        tools:text="Cheats Amount"/>
 </LinearLayout>

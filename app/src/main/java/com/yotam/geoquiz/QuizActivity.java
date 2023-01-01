@@ -29,10 +29,12 @@ public class QuizActivity extends AppCompatActivity
     private Button m_prevButton;
     private Button m_cheatButton;
     private TextView m_questionText;
+    private TextView m_cheatsLeft;
 
     private Question[] m_questions;
     private int m_currQuestionIndex;
     private Set<Integer> m_cheatedQuestion = new HashSet<>();
+    private int m_maxCheats = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -49,7 +51,22 @@ public class QuizActivity extends AppCompatActivity
 
         m_questionText = (TextView)findViewById(R.id.question_text_view);
         changeCurrentQuestion(m_currQuestionIndex);
+
+        m_cheatsLeft = findViewById(R.id.number_of_cheats);
+        setCheatsState();
+
         initButtons();
+    }
+
+    private void setCheatsState()
+    {
+        int cheatsLeft = (int)(m_maxCheats - m_cheatedQuestion.stream().count());
+        cheatsLeft = cheatsLeft < 0 ? 0 : cheatsLeft;
+        m_cheatsLeft.setText((String.valueOf(cheatsLeft)));
+        if(cheatsLeft <= 0)
+        {
+            m_cheatButton.setEnabled(false);
+        }
     }
 
     private void setState(Bundle savedInstanceState)
@@ -151,6 +168,7 @@ public class QuizActivity extends AppCompatActivity
     {
         super.onResume();
         Log.d(TAG, "onResume() called");
+        setCheatsState();
     }
 
     @Override

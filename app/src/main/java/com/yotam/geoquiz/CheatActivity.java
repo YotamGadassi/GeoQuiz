@@ -2,11 +2,14 @@ package com.yotam.geoquiz;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.w3c.dom.Text;
 
 public class CheatActivity extends AppCompatActivity
 {
@@ -50,6 +53,9 @@ public class CheatActivity extends AppCompatActivity
         {
             setAnswerShown(true);
         });
+
+        TextView apiVersionTextView = findViewById(R.id.apiVersionTextView);
+        apiVersionTextView.setText("API Version " + String.valueOf(Build.VERSION.SDK_INT));
     }
 
     private void setState(Bundle savedInstanceState)
